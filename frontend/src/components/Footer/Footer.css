@@ -1,0 +1,141 @@
+/* --------------------------------------------------
+   FOOTER MAIN
+-------------------------------------------------- */
+.footer {
+  background: #fff8f0;
+  color: #333;
+  padding: 60px 20px 30px;
+  font-family: Arial, sans-serif;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* --------------------------------------------------
+   HEADINGS
+-------------------------------------------------- */
+.footer-about h3,
+.footer-links h3,
+.footer-contact h3,
+.footer-social h3 {
+  margin-bottom: 15px;
+  color: #c0392b;
+}
+
+/* --------------------------------------------------
+   FOOTER LINKS
+-------------------------------------------------- */
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+  line-height: 2;
+}
+
+.footer-links ul li a {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-links ul li a:hover {
+  color: #c0392b;
+}
+
+/* --------------------------------------------------
+   CONTACT INFO
+-------------------------------------------------- */
+.footer-contact p {
+  margin: 5px 0;
+}
+
+.footer-contact a {
+  color: #c0392b;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* --------------------------------------------------
+   SOCIAL MEDIA SECTION
+-------------------------------------------------- */
+.footer-social {
+  text-align: right;
+}
+
+.footer-social .social-icons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+
+.footer-social .social-icons a {
+  transition: transform 0.2s;
+}
+
+.footer-social .social-icons a:hover {
+  transform: scale(1.2);
+}
+
+/* Social Brand Colors */
+.footer-social .social-icons .fb svg {
+  color: #1877F2;
+}
+
+.footer-social .social-icons .insta svg {
+  color: #E1306C;
+}
+
+.footer-social .social-icons .x svg {
+  color: #000;
+}
+
+/* --------------------------------------------------
+   NEWSLETTER FORM
+-------------------------------------------------- */
+.newsletter-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.newsletter-form input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.newsletter-form button {
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.newsletter-form button:hover {
+  background: #e74c3c;
+}
+
+/* --------------------------------------------------
+   FOOTER BOTTOM
+-------------------------------------------------- */
+.footer hr {
+  margin: 40px 0;
+  border: 0.5px solid #ddd;
+}
+
+.footer-bottom {
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+  margin-top: 40px;
+}
