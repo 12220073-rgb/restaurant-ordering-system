@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -17,8 +16,13 @@ const ordersRouter = require('./routes/orders');
 app.use('/api/items', itemsRouter);
 app.use('/api/orders', ordersRouter);
 
-// basic health check
+// Health check route
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+// Root route for Render & browser
+app.get('/', (req, res) => {
+  res.send('Restaurant backend is running!');
+});
 
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
