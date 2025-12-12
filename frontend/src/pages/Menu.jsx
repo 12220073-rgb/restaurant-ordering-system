@@ -19,7 +19,7 @@ export default function Menu() {
     userRole: "customer",
   });
 
-  const set = (k, v) => setState(s => ({ ...s, [k]: v }));
+  const set = (k, v) => setState((s) => ({ ...s, [k]: v }));
 
   // Body padding + user role
   useEffect(() => {
@@ -54,7 +54,12 @@ export default function Menu() {
           }))
         );
       })
-      .catch((e) => set("error", e))
+      .catch((e) =>
+        set(
+          "error",
+          e?.response?.data?.message || e?.message || "Failed to load menu"
+        )
+      )
       .finally(() => set("loading", false));
   }, []);
 
@@ -65,7 +70,8 @@ export default function Menu() {
     return () => window.removeEventListener("scroll", scroll);
   }, []);
 
-  const toggleDesc = (id) => set("openItemId", state.openItemId === id ? null : id);
+  const toggleDesc = (id) =>
+    set("openItemId", state.openItemId === id ? null : id);
 
   const submitFeedback = () => {
     if (!state.feedback.trim()) return alert("Please write some feedback.");
@@ -118,7 +124,14 @@ export default function Menu() {
           <h1>🍽️ Our Menu</h1>
 
           {/* Search & category */}
-          <div style={{ marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <div
+            style={{
+              marginBottom: 20,
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
             <input
               placeholder="Search items..."
               value={state.search}
@@ -155,7 +168,9 @@ export default function Menu() {
                       style={{
                         ...itemBtn,
                         background:
-                          state.hoveredItem === item.item_id ? "#fff2d9" : "#fff8f0",
+                          state.hoveredItem === item.item_id
+                            ? "#fff2d9"
+                            : "#fff8f0",
                         boxShadow:
                           state.hoveredItem === item.item_id
                             ? "0px 2px 8px rgba(0,0,0,0.2)"
@@ -196,16 +211,24 @@ export default function Menu() {
                 Submit
               </button>
 
-              {state.submitted && <p style={{ marginTop: 10, color: "green" }}>✅ Feedback sent!</p>}
+              {state.submitted && (
+                <p style={{ marginTop: 10, color: "green" }}>
+                  ✅ Feedback sent!
+                </p>
+              )}
             </div>
           )}
         </div>
 
         {/* RIGHT IMAGES */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 15 }}>
-          {["Salads", "Beverages1", "ShrimpsPlatter", "BurgerMain"].map((img) => (
-            <img key={img} src={`/Images/${img}.jpeg`} style={imgS} />
-          ))}
+        <div
+          style={{ flex: 1, display: "flex", flexDirection: "column", gap: 15 }}
+        >
+          {["Salads", "Beverages1", "ShrimpsPlatter", "BurgerMain"].map(
+            (img) => (
+              <img key={img} src={`/Images/${img}.jpeg`} style={imgS} alt={img} />
+            )
+          )}
         </div>
       </div>
 
@@ -213,6 +236,7 @@ export default function Menu() {
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           style={scrollTop}
+          aria-label="Scroll to top"
         >
           ↑
         </button>
@@ -235,8 +259,19 @@ const itemBtn = {
   fontWeight: "bold",
 };
 const rating = { float: "right", fontSize: "0.85em", color: "#b87b1c" };
-const fbBox = { marginTop: 30, padding: 20, background: "#fff4e0", borderRadius: 10 };
-const textarea = { width: "100%", padding: 10, borderRadius: 6, border: "1px solid #ccc", marginTop: 10 };
+const fbBox = {
+  marginTop: 30,
+  padding: 20,
+  background: "#fff4e0",
+  borderRadius: 10,
+};
+const textarea = {
+  width: "100%",
+  padding: 10,
+  borderRadius: 6,
+  border: "1px solid #ccc",
+  marginTop: 10,
+};
 const fbBtn = {
   marginTop: 10,
   padding: 12,
