@@ -54,7 +54,7 @@ export default function Menu() {
           }))
         );
       })
-      .catch(() => set("error", "Failed to load menu items."))
+      .catch((e) => set("error", e))
       .finally(() => set("loading", false));
   }, []);
 
