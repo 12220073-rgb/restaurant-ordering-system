@@ -34,6 +34,11 @@ app.get('/', (req, res) => {
   res.send('Restaurant backend is running!');
 });
 
+// Catch-all for 404
+app.use((req, res) => {
+  res.status(404).json({ message: 'Not Found' });
+});
+
 app.listen(PORT, () => {
   console.log(`🔥 Backend running on port ${PORT}`);
 });
