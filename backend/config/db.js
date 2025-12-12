@@ -6,8 +6,12 @@ const path = require('path');
 let sslOptions = false;
 
 if (process.env.NODE_ENV === 'production') {
-  const caCert = fs.readFileSync(path.join(__dirname, 'aiven-ca.crt'));
-  sslOptions = { ca: caCert };
+  try {
+    const caCert = fs.readFileSync(path.join(__dirname, 'aiven-ca.crt'));
+    sslOptions = { ca: caCert };
+  } catch (err) {
+    console.warn('CA certificate file not found, proceeding without SSL');
+  }
 }
 
 const pool = mysql.createPool({
