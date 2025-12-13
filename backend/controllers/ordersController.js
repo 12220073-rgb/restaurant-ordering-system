@@ -1,46 +1,62 @@
-const db = require('../config/db');
+const db = require("../config/db");
+const { sendOrderEmail } = require("../config/mailer"); // ✅ add this
 
 // ✅ Create a new order
 exports.createOrder = async (req, res) => {
-  const { fullName, phoneNumber, notes, items } = req.body;
+  const { fullName, phoneNumber, notes, items, date, orderId } = req.body;
 
   if (!fullName || !phoneNumber || !items || items.length === 0) {
-    return res.status(400).json({ message: 'Invalid order data' });
+    return res.status(400).json({ message: "Invalid order data" });
   }
 
   try {
-    const total = items.reduce((sum, it) => sum + it.qty * it.price, 0);
+    const total = items.reduce((sum, it) => sum + Number(it.qty) * Number(it.price), 0);
 
     // Insert into orders table
     const [orderResult] = await db.query(
-      'INSERT INTO orders (customer_name, customer_phone, customer_address, total) VALUES (?, ?, ?, ?)',
+      "INSERT INTO orders (customer_name, customer_phone, customer_address, total) VALUES (?, ?, ?, ?)",
       [fullName, phoneNumber, notes || null, total]
     );
 
-    const orderId = orderResult.insertId;
+    const newDbOrderId = orderResult.insertId;
 
     // Insert items including item_name
-    const insertItems = items.map(it =>
-      db.query(
-        'INSERT INTO order_items (order_id, item_id, item_name, quantity, subtotal) VALUES (?, ?, ?, ?, ?)',
-        [orderId, it.item_id, it.item_name, it.qty, it.qty * it.price]
+    await Promise.all(
+      items.map((it) =>
+        db.query(
+          "INSERT INTO order_items (order_id, item_id, item_name, quantity, subtotal) VALUES (?, ?, ?, ?, ?)",
+          [newDbOrderId, it.item_id, it.item_name, it.qty, Number(it.qty) * Number(it.price)]
+        )
       )
     );
 
-    await Promise.all(insertItems);
+    // ✅ Step 4: send email (do NOT break order if email fails)
+    try {
+      await sendOrderEmail({
+        fullName,
+        phoneNumber,
+        notes,
+        items,
+        total,
+        date: date || new Date().toISOString(),
+        orderId: orderId || newDbOrderId, // frontend id if exists, else DB id
+      });
+    } catch (emailErr) {
+      console.error("❌ Email failed:", emailErr);
+    }
 
     // ✅ Return only name, items, total for frontend
     res.status(201).json({
-      message: 'Order submitted successfully',
+      message: "Order submitted successfully",
       order: {
         customer_name: fullName,
-        items: items.map(it => ({ item_name: it.item_name, quantity: it.qty })),
-        total
-      }
+        items: items.map((it) => ({ item_name: it.item_name, quantity: it.qty })),
+        total,
+      },
     });
   } catch (err) {
-    console.error('❌ SQL Error creating order:', err.sqlMessage || err);
-    res.status(500).json({ message: 'Failed to submit order' });
+    console.error("❌ SQL Error creating order:", err.sqlMessage || err);
+    res.status(500).json({ message: "Failed to submit order" });
   }
 };
 
@@ -51,14 +67,14 @@ exports.getOrders = async (req, res) => {
 
   try {
     const [orders] = await db.query(
-      'SELECT id, customer_name, total FROM orders WHERE customer_phone = ? ORDER BY order_date DESC',
+      "SELECT id, customer_name, total FROM orders WHERE customer_phone = ? ORDER BY order_date DESC",
       [phone]
     );
 
     const ordersWithItems = await Promise.all(
-      orders.map(async order => {
+      orders.map(async (order) => {
         const [items] = await db.query(
-          'SELECT item_name, quantity FROM order_items WHERE order_id = ?',
+          "SELECT item_name, quantity FROM order_items WHERE order_id = ?",
           [order.id]
         );
         return { customer_name: order.customer_name, items, total: order.total };
@@ -67,8 +83,7 @@ exports.getOrders = async (req, res) => {
 
     res.json(ordersWithItems);
   } catch (err) {
-    console.error('❌ Error fetching orders:', err);
+    console.error("❌ Error fetching orders:", err);
     res.status(500).json([]);
   }
 };
-
