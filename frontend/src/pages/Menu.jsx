@@ -13,6 +13,11 @@ export default function Menu() {
     hoveredItem: null,
     search: "",
     category: "All",
+    feedbackName:
+      localStorage.getItem("currentUserName") ||
+      localStorage.getItem("currentUser") ||
+      localStorage.getItem("fullName") ||
+      "",
     feedback: "",
     submitted: false,
     showTop: false,
@@ -55,10 +60,7 @@ export default function Menu() {
         );
       })
       .catch((e) =>
-        set(
-          "error",
-          e?.response?.data?.message || e?.message || "Failed to load menu"
-        )
+        set("error", e?.response?.data?.message || e?.message || "Failed to load menu")
       )
       .finally(() => set("loading", false));
   }, []);
@@ -70,21 +72,22 @@ export default function Menu() {
     return () => window.removeEventListener("scroll", scroll);
   }, []);
 
-  const toggleDesc = (id) =>
-    set("openItemId", state.openItemId === id ? null : id);
+  const toggleDesc = (id) => set("openItemId", state.openItemId === id ? null : id);
 
   const submitFeedback = () => {
+    if (!state.feedbackName.trim()) return alert("Please enter your name.");
     if (!state.feedback.trim()) return alert("Please write some feedback.");
 
     const entry = {
       id: Date.now(),
-      name: localStorage.getItem("currentUser") || "Anonymous",
+      name: state.feedbackName.trim(),
       comment: state.feedback.trim(),
       date: new Date().toISOString(),
     };
 
     const old = JSON.parse(localStorage.getItem("feedbackList")) || [];
     localStorage.setItem("feedbackList", JSON.stringify([entry, ...old]));
+    localStorage.setItem("currentUserName", entry.name); // remember name
 
     set("feedback", "");
     set("submitted", true);
@@ -98,8 +101,7 @@ export default function Menu() {
       items: sec.items.filter(
         (i) =>
           i.item_name.toLowerCase().includes(state.search.toLowerCase()) &&
-          (state.category === "All" ||
-            sec.category.category_name === state.category)
+          (state.category === "All" || sec.category.category_name === state.category)
       ),
     }))
     .filter((s) => s.items.length);
@@ -124,14 +126,7 @@ export default function Menu() {
           <h1>🍽️ Our Menu</h1>
 
           {/* Search & category */}
-          <div
-            style={{
-              marginBottom: 20,
-              display: "flex",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
+          <div style={{ marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
             <input
               placeholder="Search items..."
               value={state.search}
@@ -139,11 +134,7 @@ export default function Menu() {
               style={input}
             />
 
-            <select
-              value={state.category}
-              onChange={(e) => set("category", e.target.value)}
-              style={input}
-            >
+            <select value={state.category} onChange={(e) => set("category", e.target.value)} style={input}>
               {categories.map((c) => (
                 <option key={c}>{c}</option>
               ))}
@@ -167,14 +158,9 @@ export default function Menu() {
                       onClick={() => toggleDesc(item.item_id)}
                       style={{
                         ...itemBtn,
-                        background:
-                          state.hoveredItem === item.item_id
-                            ? "#fff2d9"
-                            : "#fff8f0",
+                        background: state.hoveredItem === item.item_id ? "#fff2d9" : "#fff8f0",
                         boxShadow:
-                          state.hoveredItem === item.item_id
-                            ? "0px 2px 8px rgba(0,0,0,0.2)"
-                            : "none",
+                          state.hoveredItem === item.item_id ? "0px 2px 8px rgba(0,0,0,0.2)" : "none",
                       }}
                     >
                       {item.item_name} – ${parseFloat(item.price).toFixed(2)}
@@ -184,9 +170,7 @@ export default function Menu() {
                     </button>
 
                     {state.openItemId === item.item_id && (
-                      <p style={{ marginTop: 8, fontStyle: "italic" }}>
-                        {rndDesc(item.item_name)}
-                      </p>
+                      <p style={{ marginTop: 8, fontStyle: "italic" }}>{rndDesc(item.item_name)}</p>
                     )}
                   </div>
                 ))}
@@ -198,6 +182,13 @@ export default function Menu() {
           {state.userRole === "customer" && (
             <div style={fbBox}>
               <h3 style={{ color: "#b87b1c" }}>💬 Share Feedback</h3>
+
+              <input
+                value={state.feedbackName}
+                onChange={(e) => set("feedbackName", e.target.value)}
+                placeholder="Your name"
+                style={input}
+              />
 
               <textarea
                 value={state.feedback}
@@ -212,23 +203,17 @@ export default function Menu() {
               </button>
 
               {state.submitted && (
-                <p style={{ marginTop: 10, color: "green" }}>
-                  ✅ Feedback sent!
-                </p>
+                <p style={{ marginTop: 10, color: "green" }}>✅ Feedback sent!</p>
               )}
             </div>
           )}
         </div>
 
         {/* RIGHT IMAGES */}
-        <div
-          style={{ flex: 1, display: "flex", flexDirection: "column", gap: 15 }}
-        >
-          {["Salads", "Beverages1", "ShrimpsPlatter", "BurgerMain"].map(
-            (img) => (
-              <img key={img} src={`/Images/${img}.jpeg`} style={imgS} alt={img} />
-            )
-          )}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 15 }}>
+          {["Salads", "Beverages1", "ShrimpsPlatter", "BurgerMain"].map((img) => (
+            <img key={img} src={`/Images/${img}.jpeg`} style={imgS} alt={img} />
+          ))}
         </div>
       </div>
 
@@ -247,7 +232,7 @@ export default function Menu() {
   );
 }
 
-const input = { padding: 10, borderRadius: 6, border: "1px solid #ccc" };
+const input = { padding: 10, borderRadius: 6, border: "1px solid #ccc", width: "100%" };
 const grid = { display: "flex", flexWrap: "wrap", gap: 20, marginTop: 15 };
 const itemBtn = {
   width: "100%",
@@ -259,12 +244,7 @@ const itemBtn = {
   fontWeight: "bold",
 };
 const rating = { float: "right", fontSize: "0.85em", color: "#b87b1c" };
-const fbBox = {
-  marginTop: 30,
-  padding: 20,
-  background: "#fff4e0",
-  borderRadius: 10,
-};
+const fbBox = { marginTop: 30, padding: 20, background: "#fff4e0", borderRadius: 10 };
 const textarea = {
   width: "100%",
   padding: 10,
