@@ -1,29 +1,14 @@
+// Load environment variables from .env file
 require('dotenv').config();
+
+// Import MySQL (promise-based)
 const mysql = require('mysql2/promise');
-const fs = require('fs');
-const path = require('path');
 
-let sslOptions = false;
-
-if (process.env.NODE_ENV === 'production') {
-  try {
-    const caCert = fs.readFileSync(path.join(__dirname, 'aiven-ca.crt'));
-    sslOptions = { ca: caCert };
-  } catch (err) {
-    console.warn('CA certificate file not found, proceeding without SSL');
-  }
-}
-
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  ssl: sslOptions
+// Create and export a MySQL connection pool
+module.exports = mysql.createPool({
+  host: process.env.DB_HOST,        // Database host (e.g. localhost)
+  user: process.env.DB_USER,        // Database username
+  password: process.env.DB_PASSWORD,// Database password
+  database: process.env.DB_NAME,    // Database name
+  port: process.env.DB_PORT || 3306 // MySQL port (default: 3306)
 });
-
-module.exports = pool;

@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 
+// Create reusable transporter
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: Number(process.env.EMAIL_PORT || 465),
@@ -10,23 +11,27 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+/**
+ * Send order notification email
+ * @param {Object} order
+ */
 async function sendOrderEmail(order) {
   const items = Array.isArray(order.items) ? order.items : [];
-  const total = items.reduce((s, i) => s + Number(i.price || 0) * Number(i.qty || 0), 0);
 
-  const itemsHtml = items
-    .map(
-      (i) => `
-        <tr>
-          <td>${i.item_name}</td>
-          <td style="text-align:center;">${i.qty}</td>
-          <td style="text-align:right;">$${Number(i.price).toFixed(2)}</td>
-          <td style="text-align:right;">$${(Number(i.price) * Number(i.qty)).toFixed(2)}</td>
-        </tr>
-      `
-    )
-    .join("");
+  // Generate table rows for order items
+  const itemsHtml = items.map(i => `
+    <tr>
+      <td>${i.item_name}</td>
+      <td style="text-align:center;">${i.qty}</td>
+      <td style="text-align:right;">$${Number(i.price).toFixed(2)}</td>
+      <td style="text-align:right;">$${(Number(i.price) * Number(i.qty)).toFixed(2)}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="4">No items</td></tr>`;
 
+  // Total price
+  const total = items.reduce((sum, i) => sum + Number(i.price || 0) * Number(i.qty || 0), 0);
+
+  // Email HTML
   const html = `
     <div style="font-family:Arial,sans-serif;">
       <h2>🧾 New Order Received</h2>
@@ -34,7 +39,6 @@ async function sendOrderEmail(order) {
       <p><b>Phone:</b> ${order.phoneNumber || "-"}</p>
       <p><b>Date:</b> ${order.date ? new Date(order.date).toLocaleString() : "-"}</p>
       ${order.notes ? `<p><b>Notes:</b> ${order.notes}</p>` : ""}
-
       <h3>Order Items</h3>
       <table cellpadding="8" cellspacing="0" border="1" style="border-collapse:collapse;width:100%;">
         <thead>
@@ -45,16 +49,14 @@ async function sendOrderEmail(order) {
             <th align="right">Subtotal</th>
           </tr>
         </thead>
-        <tbody>
-          ${itemsHtml || `<tr><td colspan="4">No items</td></tr>`}
-        </tbody>
+        <tbody>${itemsHtml}</tbody>
       </table>
-
       <h3 style="text-align:right;">Total: $${total.toFixed(2)}</h3>
       <p style="color:#666;">Order ID: ${order.orderId || "-"}</p>
     </div>
   `;
 
+  // Send email
   await transporter.sendMail({
     from: `"Mostafa Restaurant" <${process.env.EMAIL_USER}>`,
     to: process.env.EMAIL_TO,

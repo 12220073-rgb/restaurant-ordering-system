@@ -421,30 +421,58 @@ legend { font-size: 1.1rem; color: #444; }
 .nav.right { right: 10px; }
 
 /* ===================================
-   📱 Responsive Design
+   📱 Responsive Design (UPDATED FIX)
 =================================== */
 @media screen and (max-width: 768px) {
   .burger { display: flex; }
-  .nav-links {
-    position: absolute;
-    top: 70px;
-    right: 0;
-    flex-direction: column;
-    width: 100%;
-    text-align: center;
-    display: none;
-    background: #0000009e;
-    padding: 20px 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px black;
-  }
-  .nav-links.active { display: flex; }
-}
 
-@media (min-width: 600px) { .equal-vedio { max-width: 45%; } }
-@media (min-width: 900px) { 
-  .equal-vedio { max-width: 22%; }
-  .Caption h1 { font-size: 2.2rem; }
+  /* Desktop links hidden on mobile (burger controls it) */
+  .nav-links {
+    position: fixed;                 /* ✅ cover screen like real mobile menu */
+    inset: 0;                        /* top:0 right:0 bottom:0 left:0 */
+    display: flex;                   /* keep flex always for animation */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+
+    background: rgba(0, 0, 0, 0.92); /* ✅ dark overlay */
+    backdrop-filter: blur(6px);
+
+    /* ✅ start hidden */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;            /* ✅ IMPORTANT: cannot click when closed */
+    transform: translateY(-10px);    /* small motion */
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+    z-index: 9999;                   /* above everything */
+  }
+
+  /* ✅ Open state */
+  .nav-links.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;            /* ✅ clickable when open */
+    transform: translateY(0);
+  }
+
+  /* Links styling (mobile) */
+  .nav-links a {
+    font-size: 22px;
+    padding: 12px 18px;
+  }
+
+  /* Optional: close button style if you have an X inside the menu */
+  .nav-links .close-btn {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    font-size: 28px;
+    color: white;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
 }
 
 /* ===================================

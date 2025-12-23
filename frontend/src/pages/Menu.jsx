@@ -22,6 +22,7 @@ export default function Menu() {
     submitted: false,
     showTop: false,
     userRole: "customer",
+    sendingFeedback: false,
   });
 
   const set = (k, v) => setState((s) => ({ ...s, [k]: v }));
@@ -37,32 +38,35 @@ export default function Menu() {
   }, []);
 
   // Fetch menu
-  useEffect(() => {
-    api
-      .get("/items")
-      .then((res) => {
-        const grouped = res.data.reduce((acc, item) => {
-          const c = item.category || "Uncategorized";
-          acc[c] = acc[c] || [];
-          acc[c].push({
-            ...item,
-            rating: (Math.random() * 2 + 3).toFixed(1),
-            popular: Math.random() > 0.7,
-          });
-          return acc;
-        }, {});
+  const fetchMenu = async () => {
+    try {
+      const res = await api.get("/items");
+      const grouped = res.data.reduce((acc, item) => {
+        const c = item.category || "Uncategorized";
+        acc[c] = acc[c] || [];
+        acc[c].push({
+          ...item,
+          rating: (Math.random() * 2 + 3).toFixed(1),
+          popular: Math.random() > 0.7,
+        });
+        return acc;
+      }, {});
 
-        setMenuData(
-          Object.keys(grouped).map((c, i) => ({
-            category: { category_id: i, category_name: c },
-            items: grouped[c],
-          }))
-        );
-      })
-      .catch((e) =>
-        set("error", e?.response?.data?.message || e?.message || "Failed to load menu")
-      )
-      .finally(() => set("loading", false));
+      setMenuData(
+        Object.keys(grouped).map((c, i) => ({
+          category: { category_id: i, category_name: c },
+          items: grouped[c],
+        }))
+      );
+    } catch (e) {
+      set("error", e?.response?.data?.message || e?.message || "Failed to load menu");
+    } finally {
+      set("loading", false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMenu();
   }, []);
 
   // Scroll top button
@@ -74,24 +78,26 @@ export default function Menu() {
 
   const toggleDesc = (id) => set("openItemId", state.openItemId === id ? null : id);
 
-  const submitFeedback = () => {
-    if (!state.feedbackName.trim()) return alert("Please enter your name.");
-    if (!state.feedback.trim()) return alert("Please write some feedback.");
+  // ✅ FEEDBACK NOW SAVES TO DB
+  const submitFeedback = async () => {
+    const name = state.feedbackName.trim();
+    const comment = state.feedback.trim();
 
-    const entry = {
-      id: Date.now(),
-      name: state.feedbackName.trim(),
-      comment: state.feedback.trim(),
-      date: new Date().toISOString(),
-    };
+    if (!name) return alert("Please enter your name.");
+    if (!comment) return alert("Please write some feedback.");
 
-    const old = JSON.parse(localStorage.getItem("feedbackList")) || [];
-    localStorage.setItem("feedbackList", JSON.stringify([entry, ...old]));
-    localStorage.setItem("currentUserName", entry.name); // remember name
-
-    set("feedback", "");
-    set("submitted", true);
-    setTimeout(() => set("submitted", false), 3000);
+    try {
+      set("sendingFeedback", true);
+      await api.post("/feedback", { name, comment });
+      localStorage.setItem("currentUserName", name);
+      set("feedback", "");
+      set("submitted", true);
+      setTimeout(() => set("submitted", false), 3000);
+    } catch (e) {
+      alert(e?.response?.data?.message || e?.message || "Failed to send feedback");
+    } finally {
+      set("sendingFeedback", false);
+    }
   };
 
   // Filtering
@@ -116,13 +122,36 @@ export default function Menu() {
       `Our special ${name}, loved by all.`,
     ][Math.floor(Math.random() * 4)];
 
+  // ✅ ADMIN MENU REFRESH (realtime after add/delete)
+  useEffect(() => {
+    const onMenuUpdate = (e) => {
+      if (!e.detail) return;
+      const updatedItem = e.detail;
+      setMenuData((prev) => {
+        const c = updatedItem.category || "Uncategorized";
+        const categoryExists = prev.find((sec) => sec.category.category_name === c);
+        if (categoryExists) {
+          return prev.map((sec) =>
+            sec.category.category_name === c
+              ? { ...sec, items: [...sec.items, updatedItem] }
+              : sec
+          );
+        } else {
+          return [...prev, { category: { category_id: prev.length, category_name: c }, items: [updatedItem] }];
+        }
+      });
+    };
+    window.addEventListener("menuItemAdded", onMenuUpdate);
+    return () => window.removeEventListener("menuItemAdded", onMenuUpdate);
+  }, []);
+
   return (
     <div style={{ background: "#fff5e6", minHeight: "100vh" }}>
       <Navbar />
 
-      <div style={{ display: "flex", gap: 35, padding: 30 }}>
+      <div style={{ display: "flex", gap: 35, padding: 30, flexWrap: "wrap" }}>
         {/* LEFT */}
-        <div style={{ flex: 2 }}>
+        <div style={{ flex: 2, minWidth: 320 }}>
           <h1>🍽️ Our Menu</h1>
 
           {/* Search & category */}
@@ -134,7 +163,11 @@ export default function Menu() {
               style={input}
             />
 
-            <select value={state.category} onChange={(e) => set("category", e.target.value)} style={input}>
+            <select
+              value={state.category}
+              onChange={(e) => set("category", e.target.value)}
+              style={input}
+            >
               {categories.map((c) => (
                 <option key={c}>{c}</option>
               ))}
@@ -158,9 +191,12 @@ export default function Menu() {
                       onClick={() => toggleDesc(item.item_id)}
                       style={{
                         ...itemBtn,
-                        background: state.hoveredItem === item.item_id ? "#fff2d9" : "#fff8f0",
+                        background:
+                          state.hoveredItem === item.item_id ? "#fff2d9" : "#fff8f0",
                         boxShadow:
-                          state.hoveredItem === item.item_id ? "0px 2px 8px rgba(0,0,0,0.2)" : "none",
+                          state.hoveredItem === item.item_id
+                            ? "0px 2px 8px rgba(0,0,0,0.2)"
+                            : "none",
                       }}
                     >
                       {item.item_name} – ${parseFloat(item.price).toFixed(2)}
@@ -170,7 +206,9 @@ export default function Menu() {
                     </button>
 
                     {state.openItemId === item.item_id && (
-                      <p style={{ marginTop: 8, fontStyle: "italic" }}>{rndDesc(item.item_name)}</p>
+                      <p style={{ marginTop: 8, fontStyle: "italic" }}>
+                        {rndDesc(item.item_name)}
+                      </p>
                     )}
                   </div>
                 ))}
@@ -198,8 +236,8 @@ export default function Menu() {
                 style={textarea}
               />
 
-              <button onClick={submitFeedback} style={fbBtn}>
-                Submit
+              <button onClick={submitFeedback} style={fbBtn} disabled={state.sendingFeedback}>
+                {state.sendingFeedback ? "Sending..." : "Submit"}
               </button>
 
               {state.submitted && (
@@ -210,7 +248,7 @@ export default function Menu() {
         </div>
 
         {/* RIGHT IMAGES */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 15 }}>
+        <div style={{ flex: 1, minWidth: 280, display: "flex", flexDirection: "column", gap: 15 }}>
           {["Salads", "Beverages1", "ShrimpsPlatter", "BurgerMain"].map((img) => (
             <img key={img} src={`/Images/${img}.jpeg`} style={imgS} alt={img} />
           ))}
@@ -232,7 +270,7 @@ export default function Menu() {
   );
 }
 
-const input = { padding: 10, borderRadius: 6, border: "1px solid #ccc", width: "100%" };
+const input = { padding: 10, borderRadius: 6, border: "1px solid #ccc", minWidth: 220, flex: 1 };
 const grid = { display: "flex", flexWrap: "wrap", gap: 20, marginTop: 15 };
 const itemBtn = {
   width: "100%",
@@ -262,8 +300,9 @@ const fbBtn = {
   borderRadius: 6,
   cursor: "pointer",
   fontWeight: "bold",
+  opacity: 1,
 };
-const imgS = { width: "100%", borderRadius: 10 };
+const imgS = { width: "100%", borderRadius: 10, objectFit: "cover" };
 const scrollTop = {
   position: "fixed",
   right: 20,

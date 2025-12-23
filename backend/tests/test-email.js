@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { sendOrderEmail } = require("./config/mailer");
+const { sendOrderEmail } = require("../config/mailer");
 
 sendOrderEmail({
   fullName: "TEST CUSTOMER",

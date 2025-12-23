@@ -1,5 +1,5 @@
 // src/components/Navbar/Navbar.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
@@ -8,25 +8,39 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrollContact, setScrollContact] = useState(false);
 
-  const scrollToContact = () => {
-    const el = document.getElementById('contact');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  const go = (path) => {
+    navigate(path);
     setIsMenuOpen(false);
   };
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userRole');
-    setIsMenuOpen(false);
-    navigate('/login');
+    go('/login');
   };
 
-  const handleOrderClick = () => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    navigate(isLoggedIn ? '/order' : '/login');
+  const handleOrderClick = () => go(localStorage.getItem('isLoggedIn') === 'true' ? '/order' : '/login');
+
+  const handleContactClick = (e) => {
+    e.preventDefault();
     setIsMenuOpen(false);
+
+    if (location.pathname === '/home') {
+      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      setScrollContact(true);
+      navigate('/home');
+    }
   };
+
+  useEffect(() => {
+    if (scrollContact && location.pathname === '/home') {
+      setScrollContact(false);
+      setTimeout(() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }), 50);
+    }
+  }, [scrollContact, location.pathname]);
 
   const navLinks = [
     { name: 'Home', path: '/home' },
@@ -41,30 +55,20 @@ export default function Navbar() {
       </Link>
 
       <ul className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
-        {navLinks.map(link => (
-          <li key={link.path}>
-            <Link to={link.path} onClick={() => setIsMenuOpen(false)}>
-              {link.name}
-            </Link>
+        {navLinks.map(({ name, path }) => (
+          <li key={path}>
+            <Link to={path} onClick={() => setIsMenuOpen(false)}>{name}</Link>
           </li>
         ))}
 
         <li>
-          {location.pathname === '/home' ? (
-            <Link to="/home" className="menu-button" onClick={scrollToContact}>
-              Contact
-            </Link>
-          ) : (
-            <Link to="/home" onClick={() => setTimeout(scrollToContact, 100)}>
-              Contact
-            </Link>
-          )}
+          <a href="/home#contact" className={location.pathname === '/home' ? 'menu-button' : undefined} onClick={handleContactClick}>
+            Contact
+          </a>
         </li>
 
         <li>
-          <button className="order-button" onClick={handleOrderClick}>
-            Order Now
-          </button>
+          <button className="order-button" onClick={handleOrderClick}>Order Now</button>
         </li>
 
         {userRole === 'admin' && (
@@ -82,19 +86,12 @@ export default function Navbar() {
         )}
 
         <li>
-          <button className="logout-button" onClick={handleLogout}>
-            Logout
-          </button>
+          <button className="logout-button" onClick={handleLogout}>Logout</button>
         </li>
       </ul>
 
-      <div
-        className={`burger ${isMenuOpen ? 'toggle' : ''}`}
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-      >
-        <div></div>
-        <div></div>
-        <div></div>
+      <div className={`burger ${isMenuOpen ? 'toggle' : ''}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <div></div><div></div><div></div>
       </div>
     </nav>
   );

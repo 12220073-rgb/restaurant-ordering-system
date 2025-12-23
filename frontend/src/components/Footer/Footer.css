@@ -1,6 +1,6 @@
-/* --------------------------------------------------
-   FOOTER MAIN
--------------------------------------------------- */
+/* ================================
+   FOOTER
+================================ */
 .footer {
   background: #fff8f0;
   color: #333;
@@ -8,65 +8,68 @@
   font-family: Arial, sans-serif;
 }
 
+/* ================================
+   LAYOUT
+================================ */
 .footer-grid {
+  max-width: 1200px;
+  margin: auto;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 40px;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
-/* --------------------------------------------------
+/* ================================
    HEADINGS
--------------------------------------------------- */
-.footer-about h3,
-.footer-links h3,
-.footer-contact h3,
-.footer-social h3 {
+================================ */
+.footer h3 {
   margin-bottom: 15px;
   color: #c0392b;
 }
 
-/* --------------------------------------------------
-   FOOTER LINKS
--------------------------------------------------- */
+/* ================================
+   LINKS
+================================ */
 .footer-links ul {
   list-style: none;
   padding: 0;
   line-height: 2;
 }
 
-.footer-links ul li a {
+.footer-links a {
   color: #333;
   text-decoration: none;
-  transition: color 0.2s ease;
+  display: inline-block;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.footer-links ul li a:hover {
+.footer-links a:hover {
   color: #c0392b;
+  transform: translateX(3px);
 }
 
-/* --------------------------------------------------
-   CONTACT INFO
--------------------------------------------------- */
+/* ================================
+   CONTACT
+================================ */
 .footer-contact p {
-  margin: 5px 0;
+  margin: 6px 0;
+  line-height: 1.6;
 }
 
 .footer-contact a {
   color: #c0392b;
-  text-decoration: none;
   font-weight: 500;
+  text-decoration: none;
 }
 
-/* --------------------------------------------------
-   SOCIAL MEDIA SECTION
--------------------------------------------------- */
+/* ================================
+   SOCIAL
+================================ */
 .footer-social {
   text-align: right;
 }
 
-.footer-social .social-icons {
+.social-icons {
   display: flex;
   justify-content: flex-end;
   gap: 15px;
@@ -74,30 +77,22 @@
   margin-bottom: 15px;
 }
 
-.footer-social .social-icons a {
-  transition: transform 0.2s;
+.social-icons a {
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.footer-social .social-icons a:hover {
-  transform: scale(1.2);
+.social-icons a:hover {
+  transform: scale(1.15);
+  opacity: 0.9;
 }
 
-/* Social Brand Colors */
-.footer-social .social-icons .fb svg {
-  color: #1877F2;
-}
+.social-icons .fb svg { color: #1877f2; }
+.social-icons .insta svg { color: #e1306c; }
+.social-icons .x svg { color: #000; }
 
-.footer-social .social-icons .insta svg {
-  color: #E1306C;
-}
-
-.footer-social .social-icons .x svg {
-  color: #000;
-}
-
-/* --------------------------------------------------
-   NEWSLETTER FORM
--------------------------------------------------- */
+/* ================================
+   NEWSLETTER
+================================ */
 .newsletter-form {
   display: flex;
   gap: 8px;
@@ -125,9 +120,20 @@
   background: #e74c3c;
 }
 
-/* --------------------------------------------------
+/* ================================
+   ACCESSIBILITY
+================================ */
+.footer a:focus-visible,
+.newsletter-form input:focus-visible,
+.newsletter-form button:focus-visible {
+  outline: 2px solid #c0392b;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ================================
    FOOTER BOTTOM
--------------------------------------------------- */
+================================ */
 .footer hr {
   margin: 40px 0;
   border: 0.5px solid #ddd;
@@ -137,5 +143,29 @@
   text-align: center;
   font-size: 14px;
   color: #555;
-  margin-top: 40px;
+}
+
+/* ================================
+   RESPONSIVE
+================================ */
+@media (max-width: 768px) {
+  .footer {
+    padding: 40px 16px 24px;
+  }
+
+  .footer-social {
+    text-align: left;
+  }
+
+  .social-icons {
+    justify-content: flex-start;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+  }
+
+  .newsletter-form button {
+    width: 100%;
+  }
 }

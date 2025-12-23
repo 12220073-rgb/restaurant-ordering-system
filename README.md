@@ -1,66 +1,91 @@
-# Restaurant Ordering System 👋
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000)
-[![License: ISC](https://img.shields.io/badge/License-ISC-yellow.svg)](#)
+🍽️ Restaurant Ordering System
 
-> Frontend built with ReactJS for browsing menu, placing orders, and viewing restaurant info.
+Full-Stack Web Application (Academic Project)
 
----
+📌 Project Overview
 
-## Project Info
+This project is a full-stack restaurant ordering system designed for academic purposes. It allows
+users to browse a restaurant menu, place orders, and store order data in a relational database.
 
-- **Version:** 1.0.0  
-- **Project homepage:** *(not provided)*  
-- **Project demo URL:** *(not provided)*  
-- **Project documentation URL:** *(not provided)*  
-- **Author name:** Mostafa Diab  
-- **GitHub username:** *(not provided)*  
-- **Author website:** *(not provided)*  
-- **Twitter username:** *(not provided)*  
-- **LinkedIn username:** *(not provided)*  
-- **Patreon username:** *(not provided)*  
-- **License:** ISC  
-- **Install command:** `npm install`  
-- **Usage command:** `npm start`  
-- **Test command:** *(not provided)*  
 
----
+System Components:
 
-## Features
-- Responsive design (desktop & mobile)  
-- Dynamic menu fetching from backend  
-- Cart and order submission  
-- Smooth scroll to Contact section  
-- Admin dashboard (optional)  
+1. Frontend: React.js
+2. Backend: Node.js + Express
+3. Database: MySQL / MariaDB
 
----
 
-## Pages
-- Home  
-- Menu (dynamic categories & items)  
-- About  
-- Contact  
-- Order  
-- Admin (for admin users)  
-- Login  
+🛠️ Technology Stack
 
----
+Frontend
 
-## Frontend Setup
+1. React.js
+2. HTML5, CSS3
+3. JavaScript (ES6)
+4. Responsive Design (Desktop & Mobile)
 
-1. Navigate to frontend folder:
 
-```bash
+Backend
+
+1. Node.js (v16+)
+2. Express.js
+3. RESTful API architecture
+4. Environment variables (dotenv)
+
+
+Database
+
+1. MySQL / MariaDB
+2. Tables: categories, menu_items, orders, order_items
+
+
+Backend Setup (Node + Express)
+
+Requirements
+
+1. Node.js v16 or higher
+2. MySQL / MariaDB
+3. Imported database: restaurant_db
+
+Installation
+
+cd backend
+npm install
+
+
+Environment Configuration
+
+DB_HOST=localhost
+DB_USER=your_user
+DB_PASSWORD=your_password
+DB_NAME=restaurant_db
+
+
+Run Backend
+
+npm run dev   # development (nodemon)
+# or
+npm start
+
+
+Frontend Setup (React)
+
 cd frontend
 npm install
 npm start
 
-## Screenshots
+Frontend runs at: http://localhost:3000
 
-![Home](frontend/public/screenshots/home.png)
-![Menu](frontend/public/screenshots/menu.png)
-![About](frontend/public/screenshots/about.png)
-![Contact](frontend/public/screenshots/contact.png)
-![Order](frontend/public/screenshots/order.png)
-![Order Confirmation](frontend/public/screenshots/OrderConfirmation.png)
-![Admin](frontend/public/screenshots/admin.png)
-![Login](frontend/public/screenshots/Login.png)
+
+
+📝 Notes:
+
+This project is intended for local development and academic evaluation. No cloud deployment
+(Render, Vercel, etc.) is included.
+
+
+
+👤 Author
+
+Mostafa Diab
+Academic Project – Full-Stack Web Development

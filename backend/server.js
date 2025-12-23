@@ -6,6 +6,8 @@ const cors = require('cors');
 
 const itemsRouter = require('./routes/items');
 const ordersRouter = require('./routes/orders');
+const feedbackRouter = require('./routes/feedback'); // ✅ NEW
+
 require('./config/db');
 
 const app = express();
@@ -34,6 +36,7 @@ app.get('/', (req, res) => res.send('Restaurant backend is running!'));
 
 app.use('/api/items', itemsRouter);
 app.use('/api/orders', ordersRouter);
+app.use('/api/feedback', feedbackRouter); // ✅ NEW
 
 /* Errors */
 app.use((req, res) => res.status(404).json({ message: 'Not Found' }));

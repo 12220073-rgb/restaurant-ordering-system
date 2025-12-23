@@ -11,6 +11,13 @@ import About from './pages/About';
 import OrderConfirmation from './pages/OrderConfirmation';
 import Admin from './pages/Admin';
 
+// New Pages (for footer links)
+import Promotions from './pages/Promotions';
+import Blog from './pages/Blog';
+import Partners from './pages/Partners';
+import Careers from './pages/Careers';
+import FAQs from './pages/FAQs';
+
 /* ===================================
    🔒 Route Protection Components
 =================================== */
@@ -47,6 +54,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/menu"
           element={
@@ -55,6 +63,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/order"
           element={
@@ -63,6 +72,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/about"
           element={
@@ -71,6 +81,52 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/promotions"
+          element={
+            <ProtectedRoute>
+              <Promotions />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/blog"
+          element={
+            <ProtectedRoute>
+              <Blog />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/partners"
+          element={
+            <ProtectedRoute>
+              <Partners />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/careers"
+          element={
+            <ProtectedRoute>
+              <Careers />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/faqs"
+          element={
+            <ProtectedRoute>
+              <FAQs />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/order-confirmation"
           element={
