@@ -1,0 +1,189 @@
+/* --------------------------------------------------
+   NAVBAR CONTAINER
+-------------------------------------------------- */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background-color: rgba(0, 0, 0, 0.97);
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
+  transition: 0.3s;
+}
+
+/* --------------------------------------------------
+   LOGO
+-------------------------------------------------- */
+.logo {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+  transition: 0.3s ease;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
+}
+
+.logo:hover {
+  transform: scale(1.07);
+  filter: drop-shadow(0 0 6px rgba(255, 180, 0, 0.7));
+}
+
+/* --------------------------------------------------
+   NAV LINKS (UL)
+-------------------------------------------------- */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* All links + Contact Button + Order Button share base text style */
+.nav-links li a,
+.contact-button,
+.order-button {
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* Hover Effect */
+.nav-links li a:hover,
+.contact-button:hover {
+  color: #ff9f43;
+}
+
+/* --------------------------------------------------
+   CONTACT BUTTON
+-------------------------------------------------- */
+.contact-button {
+  background: none;
+  border: none;
+  font-size: 1em;
+  font-weight: bold;
+}
+
+/* --------------------------------------------------
+   ORDER BUTTON
+-------------------------------------------------- */
+.order-button {
+  background: linear-gradient(135deg, #ff7a00, #ff3d00);
+  color: white;
+  padding: 10px 22px;
+  border-radius: 30px;
+  border: none;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  box-shadow: 0 4px 10px rgba(255, 60, 0, 0.4);
+}
+
+.order-button:hover {
+  transform: scale(1.08);
+  background: linear-gradient(135deg, #ffa200, #ff5500);
+  box-shadow: 0 5px 12px rgba(255, 80, 0, 0.6);
+}
+
+/* --------------------------------------------------
+   LOGOUT BUTTON
+-------------------------------------------------- */
+.logout-button {
+  padding: 8px 12px;
+  border: 1px solid #e74c3c;
+  border-radius: 6px;
+  background-color: transparent;
+  color: #e74c3c;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.logout-button:hover {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+/* --------------------------------------------------
+   WELCOME MESSAGE
+-------------------------------------------------- */
+.welcome-message.admin {
+  color: #d35400;
+  font-weight: bold;
+}
+
+.welcome-message.customer {
+  color: #b8860b;
+  font-weight: bold;
+}
+
+/* --------------------------------------------------
+   BURGER MENU (MOBILE)
+-------------------------------------------------- */
+.burger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.burger div {
+  width: 25px;
+  height: 3px;
+  background-color: #fff;
+  transition: 0.3s;
+}
+
+/* Animation */
+.burger.toggle div:nth-child(1) {
+  transform: rotate(-45deg) translate(-5px, 6px);
+}
+.burger.toggle div:nth-child(2) {
+  opacity: 0;
+}
+.burger.toggle div:nth-child(3) {
+  transform: rotate(45deg) translate(-5px, -6px);
+}
+
+/* --------------------------------------------------
+   MOBILE RESPONSIVE
+-------------------------------------------------- */
+@media (max-width: 768px) {
+  .nav-links {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    background-color: rgba(0, 0, 0, 0.95);
+    padding: 20px 0;
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    z-index: 1000;
+  }
+
+  .nav-links.active {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .burger {
+    display: flex;
+  }
+
+  .contact-button,
+  .order-button,
+  .logout-button {
+    font-size: 1.2em;
+    padding: 10px 16px;
+  }
+}
