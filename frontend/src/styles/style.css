@@ -64,10 +64,11 @@ body {
 
 /* 🍔 Burger Menu */
 .burger {
-  display: none;
+  display: none;          
   cursor: pointer;
   flex-direction: column;
   gap: 6px;
+  z-index: 10001;
 }
 
 .burger div {
@@ -75,6 +76,42 @@ body {
   height: 3px;
   background: white;
   transition: all 0.3s ease;
+}
+
+/* Nav links default */
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 25px;
+}
+
+@media screen and (max-width: 768px) {
+  .burger { display: flex; }
+
+  .nav-links {
+    display: none;                  /* hide menu initially */
+    flex-direction: column;
+    position: absolute;
+    top: 70px;
+    right: 0;
+    width: 100%;
+    text-align: center;
+    background: #000000c0;
+    padding: 20px 0;
+    border-radius: 0 0 10px 10px;
+    z-index: 9999;
+    gap: 20px;
+    pointer-events: none;           /* prevent interaction when hidden */
+    opacity: 0;                     /* smooth fade effect */
+    transition: opacity 0.3s ease;
+  }
+
+  /* Show menu when active */
+  .nav-links.active {
+    display: flex;
+    pointer-events: auto;           /* allow interaction */
+    opacity: 1;
+  }
 }
 
 /* ===================================
@@ -665,3 +702,4 @@ footer { background-color: #222; color: white; text-align: center; padding: 20px
 
 .login-info { margin-top: 20px; font-size: 0.9rem; color: #555; }
 .login-info strong { color: #d35400; }
+

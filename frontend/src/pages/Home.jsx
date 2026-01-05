@@ -26,7 +26,6 @@ export default function Home() {
   useEffect(() => {
     if (!Cookies.get('isLoggedIn')) Cookies.set('isLoggedIn', 'true', { expires: 7 });
     if (!Cookies.get('userRole')) Cookies.set('userRole', 'customer', { expires: 7 });
-
     if (!Cookies.get('cookieConsent')) setTimeout(() => setShowCookieBanner(true), 1500);
   }, []);
 
@@ -67,10 +66,16 @@ export default function Home() {
   // Carousel Arrow Handlers
   // -----------------------------
   const scrollLeft = () => {
-    if (carouselRef.current) carouselRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    if (carouselRef.current) {
+      const width = carouselRef.current.offsetWidth * 0.9; // scroll 90% of visible width
+      carouselRef.current.scrollBy({ left: -width, behavior: 'smooth' });
+    }
   };
   const scrollRight = () => {
-    if (carouselRef.current) carouselRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    if (carouselRef.current) {
+      const width = carouselRef.current.offsetWidth * 0.9;
+      carouselRef.current.scrollBy({ left: width, behavior: 'smooth' });
+    }
   };
 
   // -----------------------------
@@ -99,7 +104,7 @@ export default function Home() {
         <h2 style={{ textAlign: 'center', fontSize: '2.5em', color: '#d35400', marginBottom: '40px' }}>Popular Dishes</h2>
         <div className="carousel-wrapper" style={{ position: 'relative' }}>
           <button className="nav left" onClick={scrollLeft}>&#10094;</button>
-          <div ref={carouselRef} className="carousel" style={{ display: 'flex', gap: '20px', overflowX: 'auto', scrollBehavior: 'smooth', padding: '10px 0' }}>
+          <div ref={carouselRef} className="carousel">
             {popularDishes.map((img, idx) => <img key={idx} src={img} alt={`Dish ${idx}`} className="carousel-item" />)}
           </div>
           <button className="nav right" onClick={scrollRight}>&#10095;</button>
@@ -116,7 +121,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Offers */}
+      {/* Offers Section */}
       <section style={{ textAlign: 'center', padding: '40px 20px', background: '#fff' }}>
         <h2 style={{ color: '#d35400', fontSize: '2rem', marginBottom: '40px' }}>Special Offers</h2>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', flexWrap: 'wrap' }}>
@@ -125,14 +130,8 @@ export default function Home() {
               background: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
               maxWidth: '320px', textAlign: 'center', cursor: 'pointer', transition: 'transform 0.3s, box-shadow 0.3s'
             }}
-              onMouseOver={e => {
-                e.currentTarget.style.transform = 'translateY(-5px) scale(1.03)';
-                e.currentTarget.style.boxShadow = '0 15px 30px rgba(0,0,0,0.15)';
-              }}
-              onMouseOut={e => {
-                e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
-              }}
+              onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-5px) scale(1.03)'; e.currentTarget.style.boxShadow = '0 15px 30px rgba(0,0,0,0.15)'; }}
+              onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)'; }}
             >
               <img src={o.image} alt={o.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
               <div style={{ padding: '20px' }}>
@@ -144,7 +143,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials Section */}
       <section className="testimonials-section" style={{ background: '#fdf4e7', padding: '60px 20px', textAlign: 'center' }}>
         <h2 style={{ fontSize: '2.5em', marginBottom: '40px', color: '#b87b1c' }}>What Our Customers Say</h2>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '25px', flexWrap: 'wrap' }}>

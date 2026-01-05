@@ -1,91 +1,150 @@
-const db = require('../config/db');
-const { sendOrderEmail } = require('../config/mailer');
+// backend/controllers/ordersController.js
+const pool = require("../config/db");
+const { sendOrderEmail } = require("../config/mailer");
 
-// ✅ Create a new order
-exports.createOrder = async (req, res) => {
-  const { fullName, phoneNumber, notes, items } = req.body;
-
-  if (!fullName || !phoneNumber || !items || items.length === 0) {
-    return res.status(400).json({ message: 'Invalid order data' });
-  }
+/**
+ * GET all orders (optionally filter by phone)
+ */
+async function getOrders(req, res) {
+  const phone = req.query.phone || null;
 
   try {
-    const total = items.reduce((sum, it) => sum + it.qty * it.price, 0);
+    let query = `
+      SELECT 
+        o.id AS order_id,
+        o.customer_name,
+        o.customer_phone,
+        o.customer_notes,
+        o.total,
+        o.created_at,
+        oi.order_item_id,
+        oi.item_name,
+        oi.quantity AS qty,
+        oi.price
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+    `;
 
-    // Insert into orders table
-    const [orderResult] = await db.query(
-      'INSERT INTO orders (customer_name, customer_phone, customer_address, total) VALUES (?, ?, ?, ?)',
-      [fullName, phoneNumber, notes || null, total]
+    const params = [];
+    if (phone) {
+      query += " WHERE o.customer_phone = ?";
+      params.push(phone);
+    }
+
+    query += " ORDER BY o.created_at DESC, oi.order_item_id ASC";
+
+    const [rows] = await pool.query(query, params);
+
+    // Group items by order
+    const ordersMap = {};
+    rows.forEach((r) => {
+      if (!ordersMap[r.order_id]) {
+        ordersMap[r.order_id] = {
+          orderId: r.order_id,
+          fullName: r.customer_name || "N/A",
+          phoneNumber: r.customer_phone || "N/A",
+          notes: r.customer_notes || "None",
+          total: parseFloat(r.total) || 0,
+          created_at: r.created_at,
+          items: [],
+        };
+      }
+
+      if (r.order_item_id) {
+        ordersMap[r.order_id].items.push({
+          order_item_id: r.order_item_id,
+          item_name: r.item_name || "Unnamed",
+          qty: r.qty || 0,
+          price: parseFloat(r.price) || 0,
+        });
+      }
+    });
+
+    res.json(Object.values(ordersMap));
+  } catch (err) {
+    console.error("❌ Failed to fetch orders:", err.message);
+    res.status(500).json({ message: "Failed to fetch orders" });
+  }
+}
+
+/**
+ * POST create a new order
+ */
+async function createOrder(req, res) {
+  const { fullName, phoneNumber, notes = "None", items } = req.body;
+
+  if (!fullName || !phoneNumber) {
+    return res.status(400).json({ message: "Name and phone are required" });
+  }
+
+  if (!items || !items.length) {
+    return res.status(400).json({ message: "Order must contain items" });
+  }
+
+  const conn = await pool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // Insert order with placeholder total
+    const [order] = await conn.query(
+      "INSERT INTO orders (customer_name, customer_phone, customer_notes, total) VALUES (?, ?, ?, 0)",
+      [fullName, phoneNumber, notes]
     );
 
-    const orderId = orderResult.insertId;
+    let total = 0;
 
-    // Insert items including item_name
-    const insertItems = items.map(it =>
-      db.query(
-        'INSERT INTO order_items (order_id, item_id, item_name, quantity, subtotal) VALUES (?, ?, ?, ?, ?)',
-        [orderId, it.item_id, it.item_name, it.qty, it.qty * it.price]
-      )
-    );
+    // Insert items using item_name and price
+    for (const it of items) {
+      const qty = parseInt(it.qty, 10) || 0;
+      const price = parseFloat(it.price) || 0;
 
-    await Promise.all(insertItems);
+      await conn.query(
+        "INSERT INTO order_items (order_id, quantity, item_name, price) VALUES (?, ?, ?, ?)",
+        [order.insertId, qty, it.item_name, price]
+      );
 
-    // Send email notification
+      total += qty * price;
+    }
+
+    // Update total in orders table
+    await conn.query("UPDATE orders SET total = ? WHERE id = ?", [
+      total,
+      order.insertId,
+    ]);
+
+    await conn.commit();
+
+    // ✅ Send email with proper await + strong logging
     try {
       await sendOrderEmail({
         fullName,
         phoneNumber,
         notes,
-        orderId,
-        date: new Date().toISOString(),
+        orderId: order.insertId,
+        date: new Date().toISOString(), // ✅ same style as your test
         items,
-        total
+        total,
       });
+
+      console.log("✅ Order email sent successfully for order:", order.insertId);
     } catch (emailErr) {
-      console.error('Email sending failed:', emailErr);
-      // Don't fail the order if email fails
+      console.error(
+        "❌ Order email FAILED:",
+        emailErr?.message || emailErr
+      );
+      // We do NOT fail the order if email fails
     }
 
-    // ✅ Return only name, items, total for frontend
-    res.status(201).json({
-      message: 'Order submitted successfully',
-      order: {
-        customer_name: fullName,
-        items: items.map(it => ({ item_name: it.item_name, quantity: it.qty })),
-        total
-      }
-    });
+    res.json({ orderId: order.insertId });
   } catch (err) {
-    console.error('❌ SQL Error creating order:', err.sqlMessage || err);
-    res.status(500).json({ message: 'Failed to submit order' });
+    await conn.rollback();
+    console.error("❌ Failed to create order:", err.message);
+    res.status(500).json({ message: "Order failed" });
+  } finally {
+    conn.release();
   }
-};
+}
 
-// ✅ Get previous orders (name, items, total only)
-exports.getOrders = async (req, res) => {
-  const phone = req.query.phone;
-  if (!phone) return res.status(400).json([]);
-
-  try {
-    const [orders] = await db.query(
-      'SELECT id, customer_name, total FROM orders WHERE customer_phone = ? ORDER BY order_date DESC',
-      [phone]
-    );
-
-    const ordersWithItems = await Promise.all(
-      orders.map(async order => {
-        const [items] = await db.query(
-          'SELECT item_name, quantity FROM order_items WHERE order_id = ?',
-          [order.id]
-        );
-        return { customer_name: order.customer_name, items, total: order.total };
-      })
-    );
-
-    res.json(ordersWithItems);
-  } catch (err) {
-    console.error('❌ Error fetching orders:', err);
-    res.status(500).json([]);
-  }
-};
-
+// ✅ Export both functions so routes work
+module.exports = { getOrders, createOrder };

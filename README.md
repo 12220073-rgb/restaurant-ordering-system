@@ -1,66 +1,122 @@
-# Restaurant Ordering System 👋
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000)
-[![License: ISC](https://img.shields.io/badge/License-ISC-yellow.svg)](#)
+# Restaurant Ordering System  
+CSCI426 – Advanced Web Programming (Project Phase 2)
 
-> Frontend built with ReactJS for browsing menu, placing orders, and viewing restaurant info.
+## Project Description
+
+This project is a full-stack restaurant ordering web application developed as part of  
+**CSCI426 – Advanced Web Programming (Project Phase 2)**.
+
+The system allows customers to browse the menu, place orders, and submit feedback.  
+An admin dashboard is provided for managing orders and customer feedback.  
+The backend is built using **Node.js** and **Express.js**, with **MySQL** used for data storage.  
+Email notifications are sent upon successful order creation.
 
 ---
 
-## Project Info
+## Technologies Used
 
-- **Version:** 1.0.0  
-- **Project homepage:** *(not provided)*  
-- **Project demo URL:** *(not provided)*  
-- **Project documentation URL:** *(not provided)*  
-- **Author name:** Mostafa Diab  
-- **GitHub username:** *(not provided)*  
-- **Author website:** *(not provided)*  
-- **Twitter username:** *(not provided)*  
-- **LinkedIn username:** *(not provided)*  
-- **Patreon username:** *(not provided)*  
-- **License:** ISC  
-- **Install command:** `npm install`  
-- **Usage command:** `npm start`  
-- **Test command:** *(not provided)*  
+### Frontend
+- React.js
+- Axios
+- HTML, CSS
+
+### Backend
+- Node.js
+- Express.js
+
+### Database
+- MySQL
+
+### Other Tools
+- Nodemailer (Email notifications)
+- Git & GitHub
 
 ---
 
 ## Features
-- Responsive design (desktop & mobile)  
-- Dynamic menu fetching from backend  
-- Cart and order submission  
-- Smooth scroll to Contact section  
-- Admin dashboard (optional)  
+
+- Dynamic menu fetching from backend
+- Customer order submission with automatic total calculation
+- Email notification on order creation
+- Customer feedback submission
+- Admin dashboard for managing orders and feedback
+- Responsive design (desktop & mobile)
 
 ---
 
-## Pages
-- Home  
-- Menu (dynamic categories & items)  
-- About  
-- Contact  
-- Order  
-- Admin (for admin users)  
-- Login  
+## Application Pages
+
+- Home
+- Menu
+- About
+- Contact
+- Order
+- Order Confirmation
+- Admin Dashboard
+- Login
 
 ---
 
-## Frontend Setup
+## REST API Endpoints
 
-1. Navigate to frontend folder:
+| Method | Endpoint                | Description                 |
+|--------|-------------------------|-----------------------------|
+| GET    | /api/items              | Retrieve menu items         |
+| POST   | /api/orders             | Create a new order          |
+| GET    | /api/orders/admin       | Retrieve all orders (Admin) |
+| PATCH  | /api/orders/admin/:id   | Update order status         |
+| DELETE | /api/orders/admin/:id   | Delete order                |
+| POST   | /api/feedback           | Submit feedback             |
+| GET    | /api/feedback/admin     | Retrieve feedback           |
+| DELETE | /api/feedback/admin/:id | Delete feedback             |
 
+---
+
+## Backend Setup
+
+1. Navigate to the backend folder:
 ```bash
+cd backend
+npm install
+Create a .env file in the backend directory:
+
+env
+Copy code
+PORT=5000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=restaurant_db
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
+Start the backend server:
+
+bash
+Copy code
+npm start
+Frontend Setup
+Navigate to the frontend folder:
+
+bash
+Copy code
 cd frontend
 npm install
 npm start
 
-## Screenshots
+Screenshots
 
-![Home](frontend/public/screenshots/home.png)
-![Menu](frontend/public/screenshots/menu.png)
-![About](frontend/public/screenshots/about.png)
-![Contact](frontend/public/screenshots/contact.png)
-![Order](frontend/public/screenshots/order.png)
-![Order Confirmation](frontend/public/screenshots/OrderConfirmation.png)
-![Admin](frontend/public/screenshots/admin.png)
-![Login](frontend/public/screenshots/Login.png)
+Home Page
+![Home Page](image.png)
+
+Menu Page
+![Menu Page](image-1.png)
+
+Order Page
+![Order Page](image-2.png)
+
+Admin Dashboard
+![Admin Page](image-3.png)
+
+Author
+Mostafa Diab
+CSCI426 – Advanced Web Programming

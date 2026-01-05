@@ -1,13 +1,19 @@
-const db = require('../config/db');
+// tests/testDb.js
+const db = require("../config/db");
 
-async function test() {
+/**
+ * Test function to verify database connection and query
+ */
+async function testDbConnection() {
   try {
-    const [rows] = await db.query('SELECT * FROM menu_items');
-    console.log(rows);
-    console.log('Database connection successful!');
+    const [rows] = await db.query("SELECT * FROM menu_items");
+    console.log("✅ Database query successful. Retrieved rows:");
+    console.table(rows); // nicer formatted output
+    console.log("✅ Database connection is working!");
   } catch (err) {
-    console.error('Database connection failed:', err);
+    console.error("❌ Database connection failed:", err.message);
   }
 }
 
-test();
+// Run the test
+testDbConnection();

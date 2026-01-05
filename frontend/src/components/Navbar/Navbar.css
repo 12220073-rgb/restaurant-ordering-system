@@ -131,6 +131,7 @@
   flex-direction: column;
   gap: 5px;
   cursor: pointer;
+  z-index: 1100; /* ensure burger is above nav-links */
 }
 
 .burger div {
@@ -165,15 +166,17 @@
     gap: 30px;
     background-color: rgba(0, 0, 0, 0.95);
     padding: 20px 0;
-    transform: translateY(-20px);
+    transform: translateY(-100%);
     opacity: 0;
     transition: transform 0.3s ease, opacity 0.3s ease;
     z-index: 1000;
+    pointer-events: none; /* disable clicks by default */
   }
 
   .nav-links.active {
     transform: translateY(0);
     opacity: 1;
+    pointer-events: auto; /* enable clicks when active */
   }
 
   .burger {

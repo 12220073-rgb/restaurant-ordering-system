@@ -1,17 +1,13 @@
-import axios from 'axios';
+// src/api/axios.js
+import axios from "axios";
 
+// Create an Axios instance for the backend API
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: "http://localhost:5000/api", // Backend URL
+  withCredentials: true,               // Allow cookies if needed
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-});
-
-// Optional: request interceptor to add auth token
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
 });
 
 export default api;

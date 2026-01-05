@@ -1,12 +1,11 @@
-// src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Pages
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Menu from './pages/Menu';
-import Order from './pages/Order';
+import Order from './pages/Order.jsx';
 import About from './pages/About';
 import OrderConfirmation from './pages/OrderConfirmation';
 import Admin from './pages/Admin';
@@ -33,66 +32,64 @@ function AdminProtectedRoute({ children }) {
 =================================== */
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Route */}
-        <Route path="/login" element={<Login />} />
+    <Routes>
+      {/* Public Route */}
+      <Route path="/login" element={<Login />} />
 
-        {/* Protected Routes for Logged-in Users */}
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/menu"
-          element={
-            <ProtectedRoute>
-              <Menu />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/order"
-          element={
-            <ProtectedRoute>
-              <Order />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <ProtectedRoute>
-              <About />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/order-confirmation"
-          element={
-            <ProtectedRoute>
-              <OrderConfirmation />
-            </ProtectedRoute>
-          }
-        />
+      {/* Protected Routes for Logged-in Users */}
+      <Route
+        path="/home"
+        element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/menu"
+        element={
+          <ProtectedRoute>
+            <Menu />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/order"
+        element={
+          <ProtectedRoute>
+            <Order />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/about"
+        element={
+          <ProtectedRoute>
+            <About />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/order-confirmation"
+        element={
+          <ProtectedRoute>
+            <OrderConfirmation />
+          </ProtectedRoute>
+        }
+      />
 
-        {/* Admin-only Route */}
-        <Route
-          path="/admin"
-          element={
-            <AdminProtectedRoute>
-              <Admin />
-            </AdminProtectedRoute>
-          }
-        />
+      {/* Admin-only Route */}
+      <Route
+        path="/admin"
+        element={
+          <AdminProtectedRoute>
+            <Admin />
+          </AdminProtectedRoute>
+        }
+      />
 
-        {/* Default Route: redirect unknown paths to Home */}
-        <Route path="*" element={<Navigate to="/home" replace />} />
-      </Routes>
-    </Router>
+      {/* Default Route: redirect unknown paths to Home */}
+      <Route path="*" element={<Navigate to="/home" replace />} />
+    </Routes>
   );
 }

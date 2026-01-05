@@ -1,58 +1,66 @@
 // src/pages/OrderConfirmation.jsx
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import '../styles/style.css';
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import "../styles/style.css";
 
 export default function OrderConfirmation() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [order, setOrder] = useState(location.state || null);
-  const [previousOrders, setPreviousOrders] = useState([]);
-
-  useEffect(() => {
-    if (!order) return;
-
-    const phone = order.phoneNumber;
-    const url = process.env.REACT_APP_API_URL
-      ? `${process.env.REACT_APP_API_URL}/api/orders?phone=${phone}`
-      : `http://localhost:5000/api/orders?phone=${phone}`;
-
-    axios.get(url)
-      .then(res => {
-        setPreviousOrders(
-          res.data.filter(o => o.orderId !== order.orderId)
-                  .map(o => ({ ...o, total: parseFloat(o.total) }))
-        );
-      })
-      .catch(err => console.error('Failed to fetch previous orders', err));
-  }, [order]);
+  const order = location.state || null;
 
   if (!order) return <p>Waiting for your order...</p>;
 
-  const total = order.items.reduce((sum, it) => sum + it.price * it.qty, 0);
+  // Normalize fields (supports old & new payloads)
+  const customerName = order.fullName || order.customer_name || "N/A";
+  const customerPhone = order.phoneNumber || order.customer_phone || "N/A";
+  const customerNotes = order.notes || order.customer_notes || "None";
+
+  // Calculate total safely
+  const total =
+    order.items?.reduce(
+      (sum, it) =>
+        sum +
+        (parseFloat(it.price) || 0) * (parseInt(it.qty) || 0),
+      0
+    ) || 0;
+
   const handlePrint = () => window.print();
 
   return (
     <div className="invoice-container">
       <div className="invoice-card">
-
         {/* Navigation */}
-        <button className="back-home-btn" onClick={() => navigate('/home')}>← Back to Home</button>
+        <button className="back-home-btn" onClick={() => navigate("/")}>
+          ← Back to Menu
+        </button>
 
         {/* Header */}
         <h1>Thank You for Your Order!</h1>
         <p className="invoice-subtitle">Mostafa Restaurant</p>
 
         {/* Print Button */}
-        <button className="print-btn" onClick={handlePrint}>🖨️ Print Invoice</button>
+        <button className="print-btn" onClick={handlePrint}>
+          🖨️ Print Invoice
+        </button>
 
         {/* Customer Info */}
         <section className="invoice-section">
           <h2>Customer Information</h2>
-          <p><strong>Name:</strong> {order.fullName}</p>
-          <p><strong>Phone:</strong> {order.phoneNumber}</p>
-          {order.notes && <p><strong>Notes:</strong> {order.notes}</p>}
+          <p><strong>Name:</strong> {customerName}</p>
+          <p><strong>Phone:</strong> {customerPhone}</p>
+          <p><strong>Additional Notes:</strong> {customerNotes}</p>
+          <p>
+            <strong>Date:</strong>{" "}
+            {new Date(order.date || Date.now()).toLocaleString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })}
+          </p>
         </section>
 
         {/* Order Details */}
@@ -61,37 +69,38 @@ export default function OrderConfirmation() {
           <table className="invoice-table">
             <thead>
               <tr>
-                <th>Item</th><th>Qty</th><th>Price ($)</th><th>Subtotal ($)</th>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Price ($)</th>
+                <th>Subtotal ($)</th>
               </tr>
             </thead>
             <tbody>
-              {order.items.map((it, idx) => (
-                <tr key={idx}>
-                  <td>{it.item_name}</td>
-                  <td>{it.qty}</td>
-                  <td className="price-cell">${it.price.toFixed(2)}</td>
-                  <td className="subtotal-cell">${(it.price * it.qty).toFixed(2)}</td>
-                </tr>
-              ))}
+              {order.items?.map((it, idx) => {
+                const price = parseFloat(it.price) || 0;
+                const qty = parseInt(it.qty) || 0;
+                return (
+                  <tr key={idx}>
+                    <td>{it.item_name || it.name || "Unnamed"}</td>
+                    <td>{qty}</td>
+                    <td className="price-cell">${price.toFixed(2)}</td>
+                    <td className="subtotal-cell">
+                      ${(price * qty).toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
-          <p className="invoice-total pulse">Total: ${total.toFixed(2)}</p>
-        </section>
-
-        {/* Previous Orders */}
-        <section className="invoice-section">
-          <h2>Previous Orders</h2>
-          {previousOrders.length > 0 ? (
-            <ul>
-              {previousOrders.map((o, i) => (
-                <li key={i}><strong>{o.fullName || o.customer_name}</strong>: ${o.total.toFixed(2)}</li>
-              ))}
-            </ul>
-          ) : <p>No previous orders.</p>}
+          <p className="invoice-total pulse">
+            Total: ${total.toFixed(2)}
+          </p>
         </section>
 
         {/* Footer */}
-        <p className="invoice-footer">We appreciate your business! Enjoy your meal 🍽️</p>
+        <p className="invoice-footer">
+          We appreciate your business! Enjoy your meal 🍽️
+        </p>
       </div>
     </div>
   );

@@ -1,56 +1,61 @@
 // src/pages/Login.jsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../styles/style.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import "../styles/style.css";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   // Redirect if already logged in
   useEffect(() => {
-    if (localStorage.getItem('isLoggedIn') === 'true') navigate('/home');
+    if (localStorage.getItem("isLoggedIn") === "true") {
+      navigate("/home");
+    }
   }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!email || !password) {
-      setError('Please enter your email and password.');
+      setError("Please enter your email and password.");
       return;
     }
 
     // Admin quick login
-    if (email === 'admin@mostafa.com' && password === 'Admin123!') {
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userRole', 'admin');
-      navigate('/home');
+    if (email === "admin@mostafa.com" && password === "Admin123!") {
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("userRole", "admin");
+      navigate("/home");
       return;
     }
 
     // Regular user login/signup via backend
     try {
-      const res = await fetch('http://localhost:5000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('userRole', 'customer');
-        navigate('/home');
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("userRole", "customer");
+        localStorage.setItem("userEmail", email);
+        localStorage.setItem("userName", name || email.split("@")[0]);
+        navigate("/home");
       } else {
-        setError(data.message || 'Login failed');
+        setError(data.message || "Login failed");
       }
-    } catch {
-      setError('Server error. Please try again later.');
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Server error. Please try again later.");
     }
   };
 
@@ -87,7 +92,9 @@ export default function Login() {
 
           {error && <p className="login-error">{error}</p>}
 
-          <button type="submit" className="login-btn">Login</button>
+          <button type="submit" className="login-btn">
+            Login
+          </button>
         </form>
 
         <p className="login-info">

@@ -1,25 +1,21 @@
 // src/pages/Menu.jsx
 import React, { useEffect, useState } from "react";
-import api from "../api/axios";
+import api from "../api/axios"; // ✅ axios baseURL should point to your backend (ideally .../api)
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
 
 export default function Menu() {
   const [menuData, setMenuData] = useState([]);
-  const [state, setState] = useState({
-    loading: true,
-    error: null,
-    openItemId: null,
-    hoveredItem: null,
-    search: "",
-    category: "All",
-    feedback: "",
-    submitted: false,
-    showTop: false,
-    userRole: "customer",
-  });
-
-  const set = (k, v) => setState(s => ({ ...s, [k]: v }));
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [openItemId, setOpenItemId] = useState(null);
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("All");
+  const [feedback, setFeedback] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [showTop, setShowTop] = useState(false);
+  const [userRole, setUserRole] = useState("customer");
 
   // Body padding + user role
   useEffect(() => {
@@ -27,76 +23,102 @@ export default function Menu() {
     s.innerHTML = `body { padding-top: 80px; }`;
     document.head.appendChild(s);
 
-    set("userRole", localStorage.getItem("userRole") || "customer");
+    setUserRole(localStorage.getItem("userRole") || "customer");
+
     return () => document.head.removeChild(s);
   }, []);
 
-  // Fetch menu
+  // Fetch menu safely
   useEffect(() => {
     api
       .get("/items")
       .then((res) => {
-        const grouped = res.data.reduce((acc, item) => {
-          const c = item.category || "Uncategorized";
-          acc[c] = acc[c] || [];
-          acc[c].push({
-            ...item,
-            rating: (Math.random() * 2 + 3).toFixed(1),
-            popular: Math.random() > 0.7,
-          });
+        const safeItems = res.data.map((item, idx) => ({
+          id: item.id || item.item_id || idx, // ✅ ensure unique id
+          name: item.name || item.item_name || "Unnamed Item",
+          price: parseFloat(item.price) || 0,
+          category: item.category || "Uncategorized",
+          category_id: item.category_id || Date.now() + idx,
+          rating: (Math.random() * 2 + 3).toFixed(1),
+          popular: Math.random() > 0.7,
+        }));
+
+        // Group items by category
+        const grouped = safeItems.reduce((acc, item) => {
+          acc[item.category] = acc[item.category] || [];
+          acc[item.category].push(item);
           return acc;
         }, {});
 
         setMenuData(
-          Object.keys(grouped).map((c, i) => ({
-            category: { category_id: i, category_name: c },
+          Object.keys(grouped).map((c) => ({
+            category: {
+              category_id: grouped[c][0].category_id,
+              category_name: c,
+            },
             items: grouped[c],
           }))
         );
       })
-      .catch(() => set("error", "Failed to load menu items."))
-      .finally(() => set("loading", false));
+      .catch(() => setError("Failed to load menu items."))
+      .finally(() => setLoading(false));
   }, []);
 
   // Scroll top button
   useEffect(() => {
-    const scroll = () => set("showTop", window.scrollY > 300);
+    const scroll = () => setShowTop(window.scrollY > 300);
     window.addEventListener("scroll", scroll);
     return () => window.removeEventListener("scroll", scroll);
   }, []);
 
-  const toggleDesc = (id) => set("openItemId", state.openItemId === id ? null : id);
+  const toggleDesc = (id) => setOpenItemId(openItemId === id ? null : id);
 
-  const submitFeedback = () => {
-    if (!state.feedback.trim()) return alert("Please write some feedback.");
+  // ✅ UPDATED: Submit feedback to backend (and keep localStorage optional)
+  const submitFeedback = async () => {
+    if (!feedback.trim()) return alert("Please write some feedback.");
 
-    const entry = {
-      id: Date.now(),
+    const payload = {
       name: localStorage.getItem("currentUser") || "Anonymous",
-      comment: state.feedback.trim(),
-      date: new Date().toISOString(),
+      comment: feedback.trim(),
+      email: localStorage.getItem("currentUserEmail") || null, // optional
     };
 
-    const old = JSON.parse(localStorage.getItem("feedbackList")) || [];
-    localStorage.setItem("feedbackList", JSON.stringify([entry, ...old]));
+    try {
+      // ✅ Save to DB (backend should expose POST /api/feedback)
+      // If your axios baseURL already includes "/api", this works: /feedback
+      // If not, change to: await api.post("/api/feedback", payload);
+      await api.post("/feedback", payload);
 
-    set("feedback", "");
-    set("submitted", true);
-    setTimeout(() => set("submitted", false), 3000);
+      // ✅ Optional: keep local copy too (doesn't affect Admin/DB)
+      const entry = {
+        id: Date.now(),
+        name: payload.name,
+        comment: payload.comment,
+        date: new Date().toISOString(),
+      };
+      const old = JSON.parse(localStorage.getItem("feedbackList")) || [];
+      localStorage.setItem("feedbackList", JSON.stringify([entry, ...old]));
+
+      setFeedback("");
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 3000);
+    } catch (err) {
+      console.error("❌ Feedback submit failed:", err?.response?.data || err?.message || err);
+      alert(err?.response?.data?.message || "Failed to send feedback");
+    }
   };
 
-  // Filtering
+  // ================= FILTERED MENU =================
   const filtered = menuData
     .map((sec) => ({
       ...sec,
       items: sec.items.filter(
         (i) =>
-          i.item_name.toLowerCase().includes(state.search.toLowerCase()) &&
-          (state.category === "All" ||
-            sec.category.category_name === state.category)
+          i.name.toLowerCase().includes(search.toLowerCase()) &&
+          (category === "All" || i.category.toLowerCase() === category.toLowerCase())
       ),
     }))
-    .filter((s) => s.items.length);
+    .filter((sec) => sec.items.length);
 
   const categories = ["All", ...menuData.map((s) => s.category.category_name)];
 
@@ -121,24 +143,19 @@ export default function Menu() {
           <div style={{ marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
             <input
               placeholder="Search items..."
-              value={state.search}
-              onChange={(e) => set("search", e.target.value)}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               style={input}
             />
-
-            <select
-              value={state.category}
-              onChange={(e) => set("category", e.target.value)}
-              style={input}
-            >
+            <select value={category} onChange={(e) => setCategory(e.target.value)} style={input}>
               {categories.map((c) => (
                 <option key={c}>{c}</option>
               ))}
             </select>
           </div>
 
-          {state.loading && <p>⏳ Loading...</p>}
-          {state.error && <p style={{ color: "red" }}>{state.error}</p>}
+          {loading && <p>⏳ Loading...</p>}
+          {error && <p style={{ color: "red" }}>{error}</p>}
 
           {/* MENU */}
           {filtered.map((sec) => (
@@ -147,31 +164,24 @@ export default function Menu() {
 
               <div style={grid}>
                 {sec.items.map((item) => (
-                  <div key={item.item_id} style={{ flex: "1 1 220px" }}>
+                  <div key={item.id} style={{ flex: "1 1 220px" }}>
                     <button
-                      onMouseEnter={() => set("hoveredItem", item.item_id)}
-                      onMouseLeave={() => set("hoveredItem", null)}
-                      onClick={() => toggleDesc(item.item_id)}
+                      onMouseEnter={() => setHoveredItem(item.id)}
+                      onMouseLeave={() => setHoveredItem(null)}
+                      onClick={() => toggleDesc(item.id)}
                       style={{
                         ...itemBtn,
-                        background:
-                          state.hoveredItem === item.item_id ? "#fff2d9" : "#fff8f0",
+                        background: hoveredItem === item.id ? "#fff2d9" : "#fff8f0",
                         boxShadow:
-                          state.hoveredItem === item.item_id
-                            ? "0px 2px 8px rgba(0,0,0,0.2)"
-                            : "none",
+                          hoveredItem === item.id ? "0px 2px 8px rgba(0,0,0,0.2)" : "none",
                       }}
                     >
-                      {item.item_name} – ${parseFloat(item.price).toFixed(2)}
-                      <span style={rating}>
-                        {item.popular && "🔥 "}⭐{item.rating}
-                      </span>
+                      {item.name} – ${parseFloat(item.price).toFixed(2)}
+                      <span style={rating}>{item.popular && "🔥 "}⭐{item.rating}</span>
                     </button>
 
-                    {state.openItemId === item.item_id && (
-                      <p style={{ marginTop: 8, fontStyle: "italic" }}>
-                        {rndDesc(item.item_name)}
-                      </p>
+                    {openItemId === item.id && (
+                      <p style={{ marginTop: 8, fontStyle: "italic" }}>{rndDesc(item.name)}</p>
                     )}
                   </div>
                 ))}
@@ -180,13 +190,13 @@ export default function Menu() {
           ))}
 
           {/* FEEDBACK */}
-          {state.userRole === "customer" && (
+          {userRole === "customer" && (
             <div style={fbBox}>
               <h3 style={{ color: "#b87b1c" }}>💬 Share Feedback</h3>
 
               <textarea
-                value={state.feedback}
-                onChange={(e) => set("feedback", e.target.value)}
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
                 placeholder="Write something..."
                 rows={4}
                 style={textarea}
@@ -196,7 +206,7 @@ export default function Menu() {
                 Submit
               </button>
 
-              {state.submitted && <p style={{ marginTop: 10, color: "green" }}>✅ Feedback sent!</p>}
+              {submitted && <p style={{ marginTop: 10, color: "green" }}>✅ Feedback sent!</p>}
             </div>
           )}
         </div>
@@ -209,11 +219,8 @@ export default function Menu() {
         </div>
       </div>
 
-      {state.showTop && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          style={scrollTop}
-        >
+      {showTop && (
+        <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} style={scrollTop}>
           ↑
         </button>
       )}
@@ -223,6 +230,7 @@ export default function Menu() {
   );
 }
 
+// ================= STYLES =================
 const input = { padding: 10, borderRadius: 6, border: "1px solid #ccc" };
 const grid = { display: "flex", flexWrap: "wrap", gap: 20, marginTop: 15 };
 const itemBtn = {
@@ -236,7 +244,13 @@ const itemBtn = {
 };
 const rating = { float: "right", fontSize: "0.85em", color: "#b87b1c" };
 const fbBox = { marginTop: 30, padding: 20, background: "#fff4e0", borderRadius: 10 };
-const textarea = { width: "100%", padding: 10, borderRadius: 6, border: "1px solid #ccc", marginTop: 10 };
+const textarea = {
+  width: "100%",
+  padding: 10,
+  borderRadius: 6,
+  border: "1px solid #ccc",
+  marginTop: 10,
+};
 const fbBtn = {
   marginTop: 10,
   padding: 12,
