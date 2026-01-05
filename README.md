@@ -117,6 +117,13 @@ Order Page
 Admin Dashboard
 ![Admin Page](image-3.png)
 
+## 🌐 Live Demo
+Frontend (Vercel):
+https://restaurant-ordering-system-nu.vercel.app/
+
+⚠️ Note: The backend is not deployed online due to hosting constraints.
+The full backend implementation is available in the GitHub repository and runs locally.
+
 Author
 Mostafa Diab
 CSCI426 – Advanced Web Programming
